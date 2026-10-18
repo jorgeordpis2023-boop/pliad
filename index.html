@@ -1,1 +1,164 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapa de estaciones</title>
+
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #222;
+    }
+
+    header {
+      padding: 16px;
+      background: #17365d;
+      color: white;
+    }
+
+    #contenedor {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: calc(100vh - 66px);
+    }
+
+    #lista {
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    #mapa {
+      height: 100%;
+      width: 100%;
+    }
+
+    .estacion {
+      padding: 12px;
+      margin-bottom: 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .estacion:hover {
+      background: #eef5ff;
+    }
+
+    @media (max-width: 650px) {
+      #contenedor {
+        grid-template-columns: 1fr;
+        grid-template-rows: 38% 62%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h2 style="margin:0">Mapa de estaciones</h2>
+    <small>Ubicaciones y datos de monitoreo</small>
+  </header>
+
+  <div id="contenedor">
+    <aside id="lista">
+      <h3>Estaciones</h3>
+      <div id="estaciones"></div>
+    </aside>
+    <div id="mapa"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // DATOS DE EJEMPLO: reemplaza estos registros
+    // por los datos reales de tus estaciones.
+    const estaciones = [
+      {
+        nombre: "Estación Norte",
+        codigo: "EST-001",
+        lat: -11.98,
+        lon: -77.06,
+        temperatura: "24 °C",
+        estado: "Operativa"
+      },
+      {
+        nombre: "Estación Centro",
+        codigo: "EST-002",
+        lat: -12.0464,
+        lon: -77.0428,
+        temperatura: "22 °C",
+        estado: "Operativa"
+      },
+      {
+        nombre: "Estación Sur",
+        codigo: "EST-003",
+        lat: -12.18,
+        lon: -76.98,
+        temperatura: "23 °C",
+        estado: "En revisión"
+      }
+    ];
+
+    const mapa = L.map("mapa").setView(
+      [-12.0464, -77.0428], 10
+    );
+
+    L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }
+    ).addTo(mapa);
+
+    const lista = document.getElementById("estaciones");
+    const limites = [];
+
+    estaciones.forEach(estacion => {
+      const marcador = L.marker([
+        estacion.lat,
+        estacion.lon
+      ]).addTo(mapa);
+
+      marcador.bindPopup(`
+        <b>${estacion.nombre}</b><br>
+        Código: ${estacion.codigo}<br>
+        Temperatura: ${estacion.temperatura}<br>
+        Estado: ${estacion.estado}
+      `);
+
+      limites.push([estacion.lat, estacion.lon]);
+
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "estacion";
+
+      const nombre = document.createElement("strong");
+      nombre.textContent = estacion.nombre;
+
+      const detalle = document.createElement("p");
+      detalle.textContent =
+        `${estacion.codigo} · ${estacion.estado}`;
+
+      tarjeta.append(nombre, detalle);
+      tarjeta.addEventListener("click", () => {
+        mapa.setView(
+          [estacion.lat, estacion.lon], 15
+        );
+        marcador.openPopup();
+      });
+
+      lista.appendChild(tarjeta);
+    });
+
+    if (limites.length > 1) {
+      mapa.fitBounds(limites, { padding: [25, 25] });
+    }
+  </script>
+</body>
+</html>
+
